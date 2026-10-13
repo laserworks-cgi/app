@@ -1,1 +1,841 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budgetify Mobile Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome untuk Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom scrollbar tipis */
+        ::-webkit-scrollbar {
+            width: 3px;
+            height: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        body {
+            overflow: hidden;
+            height: 100vh;
+            background-color: #0f172a;
+        }
+        .mobile-frame {
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 880px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        @media (min-width: 640px) {
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .mobile-frame {
+                border-radius: 40px;
+                border: 8px solid #334155;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-center items-center font-sans select-none text-xs">
 
+    <!-- FRAME UTAMA MOBILE -->
+    <div class="mobile-frame bg-slate-50 flex flex-col relative overflow-hidden">
+        
+        <!-- HEADER MOBILE -->
+        <header class="bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 shrink-0 z-20">
+            <div class="flex items-center gap-2.5">
+                <div class="bg-blue-600 text-white w-8 h-8 rounded-xl flex items-center justify-center shadow-md shadow-blue-200 text-sm">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-800 text-xs leading-tight">Budgetify Mobile</h1>
+                    <p id="header-subtitle" class="text-[9px] text-slate-400 font-medium">Daftar Rencana Bulanan</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div id="realtime-clock" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">--:--</div>
+            </div>
+        </header>
+
+        <!-- KONTEN UTAMA (PANEL BERBASIS TAMPILAN MOBILE FULLVIEW) -->
+        <main class="flex-1 relative overflow-hidden flex flex-col">
+            
+            <!-- VIEW 1: DAFTAR RENCANA BULANAN (HOME) -->
+            <section id="view-home" class="absolute inset-0 flex flex-col bg-slate-50 transition-transform duration-300 z-10 p-4 overflow-y-auto">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-bold text-slate-800 text-sm">Rencana Anggaran</h2>
+                    <button onclick="openPlanModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl font-semibold shadow-sm text-[11px] flex items-center gap-1 active:scale-95 transition">
+                        <i class="fa-solid fa-plus text-[10px]"></i> Rencana Baru
+                    </button>
+                </div>
+
+                <div id="plan-list-container" class="space-y-2.5 pb-20">
+                    <!-- Kartu Rencana dimuat lewat JS -->
+                </div>
+            </section>
+
+            <!-- VIEW 2: STATISTIK & ANALITIK -->
+            <section id="view-stats" class="absolute inset-0 flex flex-col bg-slate-50 transition-transform duration-300 translate-x-full z-10 p-4 overflow-y-auto">
+                <h2 class="font-bold text-slate-800 text-sm mb-3">Statistik & Analisis</h2>
+                
+                <div class="space-y-3 pb-20">
+                    <!-- Ringkasan Keuangan -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-blue-50 border border-blue-100 p-2.5 rounded-xl text-center">
+                            <p class="text-[9px] text-blue-600 font-bold uppercase">Pendapatan</p>
+                            <h3 id="stat-income" class="text-[11px] font-black text-blue-700 mt-0.5">Rp 0</h3>
+                        </div>
+                        <div class="bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl text-center">
+                            <p class="text-[9px] text-emerald-600 font-bold uppercase">Pengeluaran</p>
+                            <h3 id="stat-expense" class="text-[11px] font-black text-emerald-700 mt-0.5">Rp 0</h3>
+                        </div>
+                        <div id="stat-balance-box" class="bg-amber-50 border border-amber-100 p-2.5 rounded-xl text-center">
+                            <p class="text-[9px] text-amber-600 font-bold uppercase">Sisa Uang</p>
+                            <h3 id="stat-balance" class="text-[11px] font-black text-amber-700 mt-0.5">Rp 0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Mode Grafik -->
+                    <div class="bg-slate-200 p-0.5 rounded-xl flex text-[10px] font-bold">
+                        <button id="stat-toggle-cat" onclick="setStatMode('category')" class="flex-1 py-1 rounded-lg bg-white text-blue-600 shadow-sm transition">Berdasarkan Kategori</button>
+                        <button id="stat-toggle-name" onclick="setStatMode('name')" class="flex-1 py-1 rounded-lg text-slate-600 transition">Berdasarkan Nama Item</button>
+                    </div>
+
+                    <!-- Grafik Lingkaran -->
+                    <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm relative h-48 flex justify-center items-center">
+                        <canvas id="mobileExpenseChart"></canvas>
+                    </div>
+
+                    <!-- Daftar Rincian 4 Kolom -->
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-50 px-3 py-2 border-b border-slate-100 grid grid-cols-4 text-[10px] font-bold text-slate-500 uppercase">
+                            <span>Item / Ket</span>
+                            <span class="text-right">Nominal</span>
+                            <span class="text-right">Porsi</span>
+                            <span class="text-right">Status</span>
+                        </div>
+                        <div id="stat-details-list" class="divide-y divide-slate-100 max-h-40 overflow-y-auto">
+                            <p class="text-center text-slate-400 text-[10px] py-4">Pilih rencana aktif terlebih dahulu.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 3: PENGATURAN & DATA -->
+            <section id="view-settings" class="absolute inset-0 flex flex-col bg-slate-50 transition-transform duration-300 translate-x-full z-10 p-4 overflow-y-auto">
+                <h2 class="font-bold text-slate-800 text-sm mb-3">Pengaturan Aplikasi</h2>
+                
+                <div class="space-y-3 pb-20">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                        <h3 class="font-bold text-slate-700 text-xs flex items-center gap-2"><i class="fa-solid fa-database text-blue-600"></i> Manajemen Data JSON</h3>
+                        <p class="text-[10px] text-slate-400">Cadangkan seluruh rencana anggaran dan pengeluaran Anda ke file JSON atau pulihkan kembali.</p>
+                        
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <button onclick="exportDataJSON()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-semibold text-[11px] transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-download text-[10px]"></i> Ekspor Data
+                            </button>
+                            <label class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm shadow-blue-200">
+                                <i class="fa-solid fa-upload text-[10px]"></i> Impor Data
+                                <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                        <h3 class="font-bold text-slate-700 text-xs flex items-center gap-2"><i class="fa-solid fa-circle-info text-emerald-600"></i> Tentang Aplikasi</h3>
+                        <p class="text-[10px] text-slate-500 leading-relaxed">Budgetify Mobile Edition dirancang khusus untuk kemudahan pengelolaan anggaran bulanan, pencatatan pendapatan pokok & lain-lain, serta analitik pengeluaran secara real-time.</p>
+                        <div class="text-[10px] text-slate-400 font-medium pt-1 border-t">Versi 4.5 Mobile Responsive</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 4: PANEL FULLVIEW RINCIAN PENGELUARAN (SUBSCREEN) -->
+            <section id="view-expense-detail" class="absolute inset-0 flex flex-col bg-slate-50 transition-transform duration-300 translate-x-full z-30">
+                <div class="bg-white border-b border-slate-200 h-14 flex items-center justify-between px-4 shrink-0">
+                    <button onclick="closeExpenseDetail()" class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition"><i class="fa-solid fa-arrow-left"></i></button>
+                    <div class="text-center">
+                        <h2 id="detail-plan-title" class="font-bold text-slate-800 text-xs">Rincian Pengeluaran</h2>
+                        <span id="detail-plan-subtitle" class="text-[9px] text-blue-600 font-semibold block">Bulan & Tahun</span>
+                    </div>
+                    <button onclick="openExpenseModal()" class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-200 hover:bg-emerald-700 transition"><i class="fa-solid fa-plus"></i></button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-3 pb-20">
+                    <!-- Ringkasan Singkat Rencana Ini -->
+                    <div class="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-2xl text-white shadow-md">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[10px] uppercase font-bold text-blue-100">Sisa Uang Rencana Ini</span>
+                            <button onclick="openPlanModal(activePlanId)" class="bg-white/20 hover:bg-white/30 text-white px-2 py-0.5 rounded-lg text-[9px] font-semibold transition"><i class="fa-solid fa-pen mr-1"></i> Edit Rencana</button>
+                        </div>
+                        <h3 id="detail-plan-balance" class="text-xl font-black">Rp 0</h3>
+                        <div class="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-white/20 text-[10px]">
+                            <div><span class="text-blue-100">Total Pendapatan:</span> <span id="detail-plan-income" class="font-bold block">Rp 0</span></div>
+                            <div><span class="text-blue-100">Total Pengeluaran:</span> <span id="detail-plan-expense" class="font-bold block">Rp 0</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Daftar Item Pengeluaran -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-slate-700 text-xs">Daftar Item Pengeluaran</h3>
+                            <span id="detail-item-count" class="text-[10px] text-slate-400 font-medium">0 item</span>
+                        </div>
+                        <div id="expense-items-container" class="space-y-2">
+                            <!-- Item pengeluaran dimuat via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- BOTTOM NAVIGATION BAR (3 Ikon: Home, Statistik, Pengaturan) -->
+        <nav class="bg-white border-t border-slate-200 h-16 flex items-center justify-around px-4 shrink-0 z-20 shadow-lg">
+            <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center gap-1 text-blue-600 transition">
+                <i class="fa-solid fa-house text-base"></i>
+                <span class="text-[10px] font-bold">Home</span>
+            </button>
+            <button onclick="switchTab('stats')" id="nav-stats" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-chart-pie text-base"></i>
+                <span class="text-[10px] font-medium">Statistik</span>
+            </button>
+            <button onclick="switchTab('settings')" id="nav-settings" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition">
+                <i class="fa-solid fa-gear text-base"></i>
+                <span class="text-[10px] font-medium">Pengaturan</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODAL FORM RENCANA (DENGAN PENDAPATAN POKOK & LAIN-LAIN) -->
+    <div id="plan-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                <h3 id="plan-modal-title" class="font-bold text-slate-800 text-xs"><i class="fa-solid fa-calendar-plus text-blue-600 mr-2"></i>Tambah Rencana Baru</h3>
+                <button onclick="closePlanModal()" class="text-slate-400 hover:text-slate-600 w-7 h-7 rounded-xl flex items-center justify-center hover:bg-slate-200 transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="plan-form" onsubmit="handlePlanSubmit(event)" class="p-4 space-y-3 overflow-y-auto flex-1 text-xs">
+                <input type="hidden" id="edit-plan-id">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Judul Rencana</label>
+                    <input type="text" id="plan-title" placeholder="Cth: Budget Rumah Tangga" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" required>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-1">Bulan</label>
+                        <select id="plan-month" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" required>
+                            <option value="Januari">Januari</option>
+                            <option value="Februari">Februari</option>
+                            <option value="Maret">Maret</option>
+                            <option value="April">April</option>
+                            <option value="Mei">Mei</option>
+                            <option value="Juni">Juni</option>
+                            <option value="Juli">Juli</option>
+                            <option value="Agustus">Agustus</option>
+                            <option value="September">September</option>
+                            <option value="Oktober">Oktober</option>
+                            <option value="November">November</option>
+                            <option value="Desember">Desember</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-1">Tahun</label>
+                        <input type="number" id="plan-year" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Pendapatan Pokok (Rp)</label>
+                    <input type="number" id="plan-base-income" placeholder="Cth: 7500000" min="0" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-xs" required>
+                </div>
+
+                <div class="border-t pt-2.5 border-slate-100">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="font-semibold text-slate-600">Pendapatan Lain-lain</label>
+                        <button type="button" onclick="addOtherIncomeField()" class="text-[10px] bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-0.5 rounded-lg font-bold transition flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-[8px]"></i> Tambah
+                        </button>
+                    </div>
+                    <div id="other-income-container" class="space-y-1.5">
+                        <!-- Baris dinamis -->
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-2 border-t">
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl shadow-md transition text-xs">Simpan Rencana</button>
+                    <button type="button" onclick="closePlanModal()" class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl transition text-xs">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL FORM PENGELUARAN -->
+    <div id="expense-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 id="expense-modal-title" class="font-bold text-slate-800 text-xs"><i class="fa-solid fa-receipt text-emerald-600 mr-2"></i>Tambah Pengeluaran</h3>
+                <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-slate-600 w-7 h-7 rounded-xl flex items-center justify-center hover:bg-slate-200 transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="expense-form" onsubmit="handleExpenseSubmit(event)" class="p-4 space-y-3 text-xs">
+                <input type="hidden" id="edit-expense-id">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-1">Kategori</label>
+                        <select id="expense-category" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs" required>
+                            <option value="">Pilih</option>
+                            <option value="Kebutuhan">Kebutuhan</option>
+                            <option value="Keinginan">Keinginan</option>
+                            <option value="Tabungan">Tabungan</option>
+                            <option value="Kredit">Kredit</option>
+                            <option value="Tagihan">Tagihan</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-600 mb-1">Jumlah (Rp)</label>
+                        <input type="number" id="expense-amount" placeholder="Cth: 500000" min="0" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Nama / Keterangan Item</label>
+                    <input type="text" id="expense-desc" placeholder="Cth: Belanja Mingguan" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs" required>
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="submit" id="expense-submit-btn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl shadow-md transition text-xs">Simpan</button>
+                    <button type="button" onclick="closeExpenseModal()" class="px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl transition text-xs">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC MOBILE -->
+    <script>
+        // --- REALTIME CLOCK & DEFAULT ---
+        function updateRealtimeClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('realtime-clock').textContent = `${hours}:${minutes}`;
+        }
+        setInterval(updateRealtimeClock, 1000);
+        updateRealtimeClock();
+
+        const now = new Date();
+        let defaultMonthIndex = now.getMonth() + 1;
+        let defaultYear = now.getFullYear();
+        if (defaultMonthIndex > 11) {
+            defaultMonthIndex = 0;
+            defaultYear += 1;
+        }
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const defaultMonthName = monthNames[defaultMonthIndex];
+
+        // --- STATE & LOCAL STORAGE ---
+        let plans = JSON.parse(localStorage.getItem('budget_plans_mobile')) || 
+                    JSON.parse(localStorage.getItem('budget_plans_v4')) || [];
+        let expenses = JSON.parse(localStorage.getItem('budget_expenses_mobile')) || 
+                       JSON.parse(localStorage.getItem('budget_expenses_v4')) || [];
+
+        plans = plans.map(p => ({
+            ...p,
+            baseIncome: p.baseIncome !== undefined ? p.baseIncome : 0,
+            otherIncomes: p.otherIncomes !== undefined ? p.otherIncomes : []
+        }));
+
+        if (plans.length === 0) {
+            plans.push({ id: Date.now(), title: 'Rencana Utama Bulanan', month: defaultMonthName, year: defaultYear.toString(), baseIncome: 5000000, otherIncomes: [] });
+        }
+
+        let activePlanId = localStorage.getItem('active_plan_id_mobile') || plans[0].id;
+        let statMode = 'category';
+        let myChart = null;
+
+        function saveData() {
+            localStorage.setItem('budget_plans_mobile', JSON.stringify(plans));
+            localStorage.setItem('budget_expenses_mobile', JSON.stringify(expenses));
+            localStorage.setItem('active_plan_id_mobile', activePlanId);
+        }
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka);
+        }
+
+        // --- NAVIGATION TAB SWITCHER ---
+        function switchTab(tab) {
+            const viewHome = document.getElementById('view-home');
+            const viewStats = document.getElementById('view-stats');
+            const viewSettings = document.getElementById('view-settings');
+            const viewDetail = document.getElementById('view-expense-detail');
+            
+            const navHome = document.getElementById('nav-home');
+            const navStats = document.getElementById('nav-stats');
+            const navSettings = document.getElementById('nav-settings');
+            const subtitle = document.getElementById('header-subtitle');
+
+            // Tutup detail subscreen jika berpindah tab utama
+            viewDetail.classList.add('translate-x-full');
+
+            viewHome.style.transform = tab === 'home' ? 'translateX(0)' : 'translateX(-100%)';
+            viewStats.style.transform = tab === 'stats' ? 'translateX(0)' : 'translateX(100%)';
+            viewSettings.style.transform = tab === 'settings' ? 'translateX(0)' : 'translateX(100%)';
+
+            navHome.className = tab === 'home' ? 'flex flex-col items-center gap-1 text-blue-600 transition' : 'flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition';
+            navStats.className = tab === 'stats' ? 'flex flex-col items-center gap-1 text-blue-600 transition' : 'flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition';
+            navSettings.className = tab === 'settings' ? 'flex flex-col items-center gap-1 text-blue-600 transition' : 'flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 transition';
+
+            if (tab === 'home') subtitle.textContent = 'Daftar Rencana Bulanan';
+            if (tab === 'stats') {
+                subtitle.textContent = 'Statistik & Analisis';
+                updateStatisticsView();
+            }
+            if (tab === 'settings') subtitle.textContent = 'Pengaturan Aplikasi';
+        }
+
+        // --- PANEL FULLVIEW RINCIAN PENGELUARAN ---
+        function openExpenseDetail(planId) {
+            activePlanId = planId;
+            saveData();
+            
+            const plan = plans.find(p => p.id == planId);
+            if (!plan) return;
+
+            document.getElementById('detail-plan-title').textContent = plan.title;
+            document.getElementById('detail-plan-subtitle').textContent = `${plan.month} ${plan.year}`;
+
+            const planExpenses = expenses.filter(e => e.planId == planId);
+            const totalExp = planExpenses.reduce((sum, i) => sum + i.amount, 0);
+            const otherIncTotal = (plan.otherIncomes || []).reduce((sum, i) => sum + i.amount, 0);
+            const totalInc = (plan.baseIncome || 0) + otherIncTotal;
+            const balance = totalInc - totalExp;
+
+            document.getElementById('detail-plan-balance').textContent = formatRupiah(balance);
+            document.getElementById('detail-plan-income').textContent = formatRupiah(totalInc);
+            document.getElementById('detail-plan-expense').textContent = formatRupiah(totalExp);
+            document.getElementById('detail-item-count').textContent = `${planExpenses.length} item`;
+
+            const container = document.getElementById('expense-items-container');
+            if (planExpenses.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-400 text-xs py-6">Belum ada rincian pengeluaran.</p>`;
+            } else {
+                let html = '';
+                planExpenses.forEach(item => {
+                    html += `
+                        <div class="bg-white p-3 rounded-2xl border border-slate-200 flex justify-between items-center shadow-sm">
+                            <div>
+                                <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[9px] font-bold">${item.category}</span>
+                                <h4 class="font-bold text-slate-800 text-xs mt-1">${item.desc}</h4>
+                                <span class="text-slate-500 font-semibold text-[11px]">${formatRupiah(item.amount)}</span>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="openExpenseModal(${item.id})" class="w-7 h-7 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center hover:bg-blue-50 hover:text-blue-600 transition"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                                <button onclick="deleteExpense(${item.id})" class="w-7 h-7 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center hover:bg-red-50 hover:text-red-600 transition"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+
+            // Geser subscreen ke view (0)
+            document.getElementById('view-expense-detail').style.transform = 'translateX(0)';
+        }
+
+        function closeExpenseDetail() {
+            document.getElementById('view-expense-detail').style.transform = 'translateX(100%)';
+            renderPlans();
+        }
+
+        // --- RENDER HOME (DAFTAR RENCANA) ---
+        function renderPlans() {
+            const container = document.getElementById('plan-list-container');
+            if (plans.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">Belum ada rencana bulanan.</p>`;
+                return;
+            }
+
+            let html = '';
+            plans.forEach(plan => {
+                const planExpenses = expenses.filter(e => e.planId == plan.id);
+                const totalExp = planExpenses.reduce((sum, i) => sum + i.amount, 0);
+                const otherIncTotal = (plan.otherIncomes || []).reduce((sum, i) => sum + i.amount, 0);
+                const totalInc = (plan.baseIncome || 0) + otherIncTotal;
+                const balance = totalInc - totalExp;
+
+                html += `
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm relative flex flex-col gap-2">
+                        <!-- Klik kartu untuk buka rincian -->
+                        <div onclick="openExpenseDetail(${plan.id})" class="cursor-pointer">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="text-[9px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md">${plan.month} ${plan.year}</span>
+                                    <h3 class="font-bold text-slate-800 text-xs mt-1.5">${plan.title}</h3>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-[9px] text-slate-400 block font-medium">Sisa Uang</span>
+                                    <span class="font-bold text-xs ${balance >= 0 ? 'text-emerald-600' : 'text-red-600'}">${formatRupiah(balance)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Baris Tombol Aksi (Edit & Hapus Rencana) -->
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-[10px]">
+                            <span class="text-slate-400 font-medium">${planExpenses.length} item pengeluaran</span>
+                            <div class="flex gap-1.5">
+                                <button onclick="openPlanModal(${plan.id})" class="bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1">
+                                    <i class="fa-solid fa-pen text-[9px]"></i> Edit
+                                </button>
+                                <button onclick="deletePlan(${plan.id})" class="bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-600 px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1">
+                                    <i class="fa-solid fa-trash text-[9px]"></i> Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // --- MODAL RENCANA & PENGELUARAN ---
+        function addOtherIncomeField(name = '', amount = '') {
+            const container = document.getElementById('other-income-container');
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 items-center other-income-row';
+            div.innerHTML = `
+                <input type="text" placeholder="Sumber (cth: Bonus)" value="${name}" class="other-name flex-1 px-3 py-2 border border-slate-200 rounded-xl outline-none text-xs">
+                <input type="number" placeholder="Jumlah" value="${amount}" min="0" class="other-amount w-28 px-3 py-2 border border-slate-200 rounded-xl outline-none text-xs">
+                <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-red-600 px-1"><i class="fa-solid fa-trash text-xs"></i></button>
+            `;
+            container.appendChild(div);
+        }
+
+        function openPlanModal(editId = null) {
+            const modal = document.getElementById('plan-modal');
+            modal.classList.remove('hidden');
+            document.getElementById('other-income-container').innerHTML = '';
+
+            if (editId) {
+                document.getElementById('plan-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-blue-600 mr-2"></i>Edit Rencana Bulan';
+                const plan = plans.find(p => p.id == editId);
+                if (plan) {
+                    document.getElementById('edit-plan-id').value = plan.id;
+                    document.getElementById('plan-title').value = plan.title;
+                    document.getElementById('plan-month').value = plan.month;
+                    document.getElementById('plan-year').value = plan.year;
+                    document.getElementById('plan-base-income').value = plan.baseIncome || 0;
+                    if (plan.otherIncomes) plan.otherIncomes.forEach(i => addOtherIncomeField(i.name, i.amount));
+                }
+            } else {
+                document.getElementById('plan-modal-title').innerHTML = '<i class="fa-solid fa-calendar-plus text-blue-600 mr-2"></i>Tambah Rencana Baru';
+                document.getElementById('plan-form').reset();
+                document.getElementById('edit-plan-id').value = '';
+                document.getElementById('plan-month').value = defaultMonthName;
+                document.getElementById('plan-year').value = defaultYear;
+                document.getElementById('plan-base-income').value = '';
+            }
+        }
+
+        function closePlanModal() {
+            document.getElementById('plan-modal').classList.add('hidden');
+        }
+
+        function openExpenseModal(editId = null) {
+            if (!activePlanId) return alert('Pilih rencana terlebih dahulu!');
+            const modal = document.getElementById('expense-modal');
+            modal.classList.remove('hidden');
+            if (editId) {
+                document.getElementById('expense-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-emerald-600 mr-2"></i>Edit Pengeluaran';
+                document.getElementById('expense-submit-btn').textContent = 'Perbarui';
+                const exp = expenses.find(e => e.id == editId);
+                if (exp) {
+                    document.getElementById('edit-expense-id').value = exp.id;
+                    document.getElementById('expense-category').value = exp.category;
+                    document.getElementById('expense-amount').value = exp.amount;
+                    document.getElementById('expense-desc').value = exp.desc;
+                }
+            } else {
+                document.getElementById('expense-modal-title').innerHTML = '<i class="fa-solid fa-receipt text-emerald-600 mr-2"></i>Tambah Pengeluaran';
+                document.getElementById('expense-submit-btn').textContent = 'Simpan';
+                document.getElementById('expense-form').reset();
+                document.getElementById('edit-expense-id').value = '';
+            }
+        }
+
+        function closeExpenseModal() {
+            document.getElementById('expense-modal').classList.add('hidden');
+        }
+
+        // --- CRUD HANDLERS ---
+        function handlePlanSubmit(event) {
+            event.preventDefault();
+            const editId = document.getElementById('edit-plan-id').value;
+            const title = document.getElementById('plan-title').value.trim();
+            const month = document.getElementById('plan-month').value;
+            const year = document.getElementById('plan-year').value;
+            const baseIncome = parseFloat(document.getElementById('plan-base-income').value) || 0;
+
+            const otherIncomes = [];
+            document.querySelectorAll('.other-income-row').forEach(row => {
+                const name = row.querySelector('.other-name').value.trim();
+                const amount = parseFloat(row.querySelector('.other-amount').value) || 0;
+                if (name && amount > 0) otherIncomes.push({ name, amount });
+            });
+
+            if (editId) {
+                plans = plans.map(p => p.id == editId ? { ...p, title, month, year, baseIncome, otherIncomes } : p);
+            } else {
+                const newPlan = { id: Date.now(), title, month, year, baseIncome, otherIncomes };
+                plans.push(newPlan);
+                activePlanId = newPlan.id;
+            }
+
+            saveData();
+            closePlanModal();
+            renderPlans();
+            openExpenseDetail(activePlanId);
+        }
+
+        function deletePlan(id) {
+            if (confirm('Hapus rencana ini beserta seluruh item pengeluarannya?')) {
+                plans = plans.filter(p => p.id != id);
+                expenses = expenses.filter(e => e.planId != id);
+                if (activePlanId == id) activePlanId = plans.length > 0 ? plans[0].id : null;
+                saveData();
+                renderPlans();
+            }
+        }
+
+        function handleExpenseSubmit(event) {
+            event.preventDefault();
+            if (!activePlanId) return;
+
+            const editId = document.getElementById('edit-expense-id').value;
+            const category = document.getElementById('expense-category').value;
+            const amount = parseFloat(document.getElementById('expense-amount').value);
+            const desc = document.getElementById('expense-desc').value.trim();
+
+            if (editId) {
+                expenses = expenses.map(e => e.id == editId ? { ...e, category, amount, desc } : e);
+            } else {
+                const newExpense = { id: Date.now(), planId: activePlanId, category, amount, desc };
+                expenses.push(newExpense);
+            }
+
+            saveData();
+            closeExpenseModal();
+            openExpenseDetail(activePlanId);
+        }
+
+        function deleteExpense(id) {
+            if (confirm('Hapus item pengeluaran ini?')) {
+                expenses = expenses.filter(e => e.id != id);
+                saveData();
+                openExpenseDetail(activePlanId);
+            }
+        }
+
+        // --- STATISTIK & GRAFIK ---
+        function setStatMode(mode) {
+            statMode = mode;
+            const btnCat = document.getElementById('stat-toggle-cat');
+            const btnName = document.getElementById('stat-toggle-name');
+            if (mode === 'category') {
+                btnCat.className = 'flex-1 py-1 rounded-lg bg-white text-blue-600 shadow-sm transition';
+                btnName.className = 'flex-1 py-1 rounded-lg text-slate-600 transition';
+            } else {
+                btnName.className = 'flex-1 py-1 rounded-lg bg-white text-blue-600 shadow-sm transition';
+                btnCat.className = 'flex-1 py-1 rounded-lg text-slate-600 transition';
+            }
+            updateStatisticsView();
+        }
+
+        function updateStatisticsView() {
+            if (!activePlanId && plans.length > 0) activePlanId = plans[0].id;
+            
+            const incomeEl = document.getElementById('stat-income');
+            const expenseEl = document.getElementById('stat-expense');
+            const balanceEl = document.getElementById('stat-balance');
+            const balanceBox = document.getElementById('stat-balance-box');
+            const detailsEl = document.getElementById('stat-details-list');
+
+            if (!activePlanId) {
+                incomeEl.textContent = formatRupiah(0);
+                expenseEl.textContent = formatRupiah(0);
+                balanceEl.textContent = formatRupiah(0);
+                detailsEl.innerHTML = `<p class="text-center text-slate-400 text-[10px] py-4">Belum ada rencana.</p>`;
+                if (myChart) myChart.destroy();
+                return;
+            }
+
+            const activePlan = plans.find(p => p.id == activePlanId);
+            const planExpenses = expenses.filter(e => e.planId == activePlanId);
+            const totalExp = planExpenses.reduce((sum, item) => sum + item.amount, 0);
+            
+            const otherIncTotal = (activePlan?.otherIncomes || []).reduce((sum, i) => sum + i.amount, 0);
+            const totalInc = (activePlan?.baseIncome || 0) + otherIncTotal;
+            const balance = totalInc - totalExp;
+
+            incomeEl.textContent = formatRupiah(totalInc);
+            expenseEl.textContent = formatRupiah(totalExp);
+            balanceEl.textContent = formatRupiah(balance);
+
+            if (balance >= 0) {
+                balanceBox.className = "bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl text-center";
+                balanceEl.className = "text-[11px] font-black text-emerald-700 mt-0.5";
+            } else {
+                balanceBox.className = "bg-red-50 border border-red-100 p-2.5 rounded-xl text-center";
+                balanceEl.className = "text-[11px] font-black text-red-700 mt-0.5";
+            }
+
+            let chartLabels = [];
+            let chartData = [];
+            let chartColors = [];
+            let detailsHtml = '';
+            const colorPalette = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b'];
+
+            if (statMode === 'category') {
+                const categories = ['Kebutuhan', 'Keinginan', 'Tabungan', 'Kredit', 'Tagihan', 'Lainnya'];
+                const categoryColors = {
+                    'Kebutuhan': '#3b82f6',
+                    'Keinginan': '#f59e0b',
+                    'Tabungan': '#10b981',
+                    'Kredit': '#ef4444',
+                    'Tagihan': '#8b5cf6',
+                    'Lainnya': '#64748b'
+                };
+
+                let categoryTotals = {};
+                categories.forEach(cat => categoryTotals[cat] = 0);
+                planExpenses.forEach(item => {
+                    if (categoryTotals[item.category] !== undefined) categoryTotals[item.category] += item.amount;
+                    else categoryTotals['Lainnya'] += item.amount;
+                });
+
+                categories.forEach(cat => {
+                    const amt = categoryTotals[cat];
+                    const pct = totalExp > 0 ? ((amt / totalExp) * 100).toFixed(1) : 0;
+                    chartLabels.push(cat);
+                    chartData.push(amt);
+                    chartColors.push(categoryColors[cat]);
+
+                    detailsHtml += `
+                        <div class="px-3 py-2 grid grid-cols-4 items-center text-[10px]">
+                            <span class="font-semibold text-slate-700 truncate">${cat}</span>
+                            <span class="text-right text-slate-600">${formatRupiah(amt)}</span>
+                            <span class="text-right font-bold text-slate-800">${pct}%</span>
+                            <span class="text-right text-[9px] text-slate-400">Aktif</span>
+                        </div>
+                    `;
+                });
+            } else {
+                let nameTotals = {};
+                planExpenses.forEach(item => {
+                    const key = item.desc || 'Lainnya';
+                    nameTotals[key] = (nameTotals[key] || 0) + item.amount;
+                });
+
+                let index = 0;
+                for (const [name, amt] of Object.entries(nameTotals)) {
+                    const pct = totalExp > 0 ? ((amt / totalExp) * 100).toFixed(1) : 0;
+                    const color = colorPalette[index % colorPalette.length];
+                    index++;
+
+                    chartLabels.push(name);
+                    chartData.push(amt);
+                    chartColors.push(color);
+
+                    detailsHtml += `
+                        <div class="px-3 py-2 grid grid-cols-4 items-center text-[10px]">
+                            <span class="font-semibold text-slate-700 truncate" title="${name}">${name}</span>
+                            <span class="text-right text-slate-600">${formatRupiah(amt)}</span>
+                            <span class="text-right font-bold text-slate-800">${pct}%</span>
+                            <span class="text-right text-[9px] text-slate-400">Item</span>
+                        </div>
+                    `;
+                }
+
+                if (planExpenses.length === 0) {
+                    detailsHtml = `<p class="text-center text-slate-400 text-[10px] py-4">Belum ada item pengeluaran.</p>`;
+                }
+            }
+
+            detailsEl.innerHTML = detailsHtml;
+
+            const ctx = document.getElementById('mobileExpenseChart').getContext('2d');
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: chartColors,
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        // --- EKSPOR & IMPOR JSON ---
+        function exportDataJSON() {
+            const dataToExport = { plans, expenses, exportDate: new Date().toISOString() };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `budgetify_mobile_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.plans && imported.expenses) {
+                        if (confirm('Impor data ini akan menggantikan data saat ini?')) {
+                            plans = imported.plans;
+                            expenses = imported.expenses;
+                            activePlanId = plans.length > 0 ? plans[0].id : null;
+                            saveData();
+                            renderPlans();
+                            alert('Data berhasil diimpor!');
+                        }
+                    } else {
+                        alert('Format file JSON tidak valid.');
+                    }
+                } catch (err) {
+                    alert('Gagal membaca file: ' + err.message);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        // Inisialisasi Awal
+        if (!activePlanId && plans.length > 0) activePlanId = plans[0].id;
+        renderPlans();
+    </script>
+</body>
+</html>
