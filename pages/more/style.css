@@ -1,0 +1,2 @@
+/* Lainnya dan Ringkasan berada dalam modul terpisah agar mudah diperluas. */
+.more-action { width:100%; display:flex; align-items:center; text-align:left; padding:1rem 0; }

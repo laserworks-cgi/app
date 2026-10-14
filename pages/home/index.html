@@ -1,0 +1,76 @@
+<!-- Kartu saldo utama -->
+            <div class="hero rounded-[28px] p-5 text-white relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-12 w-44 h-44 rounded-full bg-white/10 pointer-events-none"></div>
+                <div class="absolute right-14 -top-10 w-24 h-24 rounded-full bg-white/5 pointer-events-none"></div>
+                <div class="flex items-start justify-between relative">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-medium text-blue-100">Total Saldo</span>
+                            <button onclick="toggleHide()" aria-label="Sembunyikan saldo" class="text-blue-100/90 text-xs active:scale-90 transition"><i id="eye-icon" class="fa-regular fa-eye"></i></button>
+                        </div>
+                        <div class="text-[28px] leading-tight font-extrabold tracking-tight mt-1" id="txt-total">Rp 0</div>
+                    </div>
+                    <button id="vault-btn" onclick="openVault()" aria-label="Atur saldo awal" class="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-xl active:scale-90 transition">
+                        <i class="fa-solid fa-vault"></i>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-5 relative">
+                    <div class="rounded-2xl bg-white/10 px-3 py-2.5">
+                        <div class="flex items-center space-x-1.5 text-[10px] text-blue-100"><i class="fa-solid fa-arrow-down text-emerald-300"></i><span>Pemasukan bulan ini</span></div>
+                        <p class="text-sm font-bold mt-0.5" id="txt-in">Rp 0</p>
+                    </div>
+                    <div class="rounded-2xl bg-white/10 px-3 py-2.5">
+                        <div class="flex items-center space-x-1.5 text-[10px] text-blue-100"><i class="fa-solid fa-arrow-up text-rose-300"></i><span>Pengeluaran bulan ini</span></div>
+                        <p class="text-sm font-bold mt-0.5" id="txt-out">Rp 0</p>
+                    </div>
+                </div>
+
+                <button id="empty-hint" onclick="openVault()" class="hidden relative mt-4 w-full text-left text-xs font-semibold bg-white text-blue-700 rounded-2xl px-4 py-3 items-center justify-between active:scale-[.98] transition">
+                    <span><i class="fa-solid fa-vault mr-2"></i>Mulai dengan mengisi saldo awal</span><i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Aksi cepat -->
+            <div class="grid grid-cols-4 gap-2 px-1">
+                <button onclick="quickAction('transfer')" class="flex flex-col items-center active:scale-95 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-white shadow-sm shadow-slate-200/70 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-right-left"></i></div>
+                    <span class="text-[11px] font-semibold text-slate-600 mt-1.5">Transfer</span>
+                </button>
+                <button onclick="quickAction('topup')" class="flex flex-col items-center active:scale-95 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-white shadow-sm shadow-slate-200/70 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-circle-plus"></i></div>
+                    <span class="text-[11px] font-semibold text-slate-600 mt-1.5">Top Up</span>
+                </button>
+                <button onclick="quickAction('pay')" class="flex flex-col items-center active:scale-95 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-white shadow-sm shadow-slate-200/70 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-cart-shopping"></i></div>
+                    <span class="text-[11px] font-semibold text-slate-600 mt-1.5">Bayar</span>
+                </button>
+                <button onclick="quickAction('income')" class="flex flex-col items-center active:scale-95 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-white shadow-sm shadow-slate-200/70 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-arrow-down"></i></div>
+                    <span class="text-[11px] font-semibold text-slate-600 mt-1.5">Terima</span>
+                </button>
+            </div>
+
+            <!-- Cash -->
+            <div class="bg-white rounded-3xl px-4 py-1 shadow-sm shadow-slate-200/70" id="card-cash"></div>
+
+            <!-- Bank (grid 3 kolom, maks 2 baris) -->
+            <div class="bg-white rounded-3xl px-3 pt-4 pb-3 shadow-sm shadow-slate-200/70">
+                <div class="flex items-center justify-between px-1 mb-2">
+                    <h2 class="text-sm font-bold text-slate-900">Rekening Bank</h2>
+                    <span class="text-xs font-semibold text-slate-500" id="sum-bank">Rp 0</span>
+                </div>
+                <div id="grid-bank"></div>
+            </div>
+
+            <!-- E-Wallet (grid 3 kolom, maks 2 baris) -->
+            <div class="bg-white rounded-3xl px-3 pt-4 pb-3 shadow-sm shadow-slate-200/70">
+                <div class="flex items-center justify-between px-1 mb-2">
+                    <h2 class="text-sm font-bold text-slate-900">E-Wallet</h2>
+                    <span class="text-xs font-semibold text-slate-500" id="sum-ewallet">Rp 0</span>
+                </div>
+                <div id="grid-ewallet"></div>
+            </div>
+
+            <!-- Tabungan -->
+            <div class="bg-white rounded-3xl px-4 py-1 shadow-sm shadow-slate-200/70" id="card-tabungan"></div>

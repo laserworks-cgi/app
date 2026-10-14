@@ -1,0 +1,34 @@
+html, body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; background: #f3f5fa; }
+        .hero {
+            background:
+                radial-gradient(120% 120% at 100% 0%, rgba(96,165,250,.55) 0%, rgba(96,165,250,0) 55%),
+                linear-gradient(140deg, #0b2f8a 0%, #1450e0 70%, #2a6df5 100%);
+        }
+        .panel { height: 100vh; height: 100dvh; }
+        .slide-up { animation: slideUp .28s cubic-bezier(.2,.8,.2,1); }
+        @keyframes slideUp { from { transform: translateY(28px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .slide-right { animation: slideRight .26s cubic-bezier(.2,.8,.2,1); }
+        @keyframes slideRight { from { transform: translateX(36px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .fade-in { animation: fadeIn .25s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+        .flash-new { animation: flashNew 2.4s ease-out; }
+        @keyframes flashNew { 0% { background: #dbeafe; } 100% { background: transparent; } }
+        .toast-in { animation: toastIn .3s ease-out; }
+        @keyframes toastIn { from { transform: translate(-50%, -14px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        .pulse-ring { animation: pulseRing 1.8s infinite; }
+        @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,.55); } 70% { box-shadow: 0 0 0 12px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        .safe-b { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        button { -webkit-user-select: none; user-select: none; }
+
+/* Shared shell and PWA safe-area behavior */
+html, body { min-height: 100%; }
+body { padding-top: env(safe-area-inset-top, 0px); }
+#app-main { padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)); }
+.center-btn-anim { animation: centerBtnPop .45s cubic-bezier(.175,.885,.32,1.275); }
+@keyframes centerBtnPop { 0% { transform: scale(.6) rotate(-25deg); opacity:.5; } 50% { transform: scale(1.18) rotate(10deg); } 100% { transform: scale(1) rotate(0); opacity:1; } }
+.nav-btn.active { color: #2563eb; }
+

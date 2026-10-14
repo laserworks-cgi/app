@@ -1,0 +1,47 @@
+/* Anggaran: styling khusus halaman dan modal. */
+html, body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; background: #f3f5fa; min-height: 100%; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    body { padding-top: env(safe-area-inset-top, 0px); }
+    button, input, select, textarea { -webkit-user-select: none; user-select: none; font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important; }
+    input, select, textarea { -webkit-user-select: text; user-select: text; }
+    .nav-btn { color: #94a3b8; }
+    .nav-btn.active { color: #2563eb; }
+    .blank-page { min-height: calc(100dvh - 9rem); }
+    .hero {
+        background:
+            radial-gradient(120% 120% at 100% 0%, rgba(96,165,250,.55) 0%, rgba(96,165,250,0) 55%),
+            linear-gradient(140deg, #0b2f8a 0%, #1450e0 70%, #2a6df5 100%);
+    }
+    .panel { height: 100vh; height: 100dvh; }
+    .slide-up { animation: slideUp .28s cubic-bezier(.2,.8,.2,1); }
+    @keyframes slideUp { from { transform: translateY(28px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .toast-in { animation: toastIn .3s ease-out; }
+    @keyframes toastIn { from { transform: translate(-50%, -14px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+    /* Animasi pergantian tombol tengah (TETAP DIPERTAHANKAN) */
+    .center-btn-anim {
+        animation: centerBtnPop 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes centerBtnPop {
+        0% { transform: scale(0.6) rotate(-25deg); opacity: 0.5; }
+        50% { transform: scale(1.18) rotate(10deg); }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    .safe-b { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Input modern style */
+    .modern-input-group {
+        position: relative;
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 1.25rem;
+        transition: all 0.2s ease;
+    }
+    .modern-input-group:focus-within {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
